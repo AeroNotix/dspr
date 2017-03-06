@@ -14,6 +14,7 @@
 -export([handle_cast/2]).
 -export([handle_info/2]).
 -export([init/1]).
+-export([start/0]).
 -export([start_link/0]).
 -export([terminate/2]).
 
@@ -24,6 +25,9 @@
           registrations = [] :: list()
          }).
 
+
+start() ->
+    supervisor:start_child(dspr_sup, []).
 
 start_link() ->
     gen_server:start_link(?MODULE, [], []).
