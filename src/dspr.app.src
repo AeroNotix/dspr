@@ -1,0 +1,11 @@
+{application,dspr,
+    [{description,"Dead Simple Process Registration (local-only)"},
+     {vsn,"0.0.1"},
+     {modules,[]},
+     {registered,[]},
+     {applications,
+         [crypto,
+          kernel,
+          stdlib]},
+     {mod,{dspr_app,[]}},
+     {env, []}]}.
