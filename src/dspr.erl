@@ -7,6 +7,7 @@
 -export([register/4]).
 -export([unregister/2]).
 -export([unregister/3]).
+-export([whereis/2]).
 
 -export([code_change/3]).
 -export([handle_call/3]).
@@ -75,3 +76,9 @@ unregister(Where, Term) ->
 
 unregister(Where, Term, Timeout) ->
     gen_server:call(Where, {unregister, Term}, Timeout).
+
+whereis(Where, Term) ->
+    whereis(Where, Term, 5000).
+
+whereis(Where, Term, Timeout) ->
+    gen_server:call(Where, {whereis, Term}, Timeout).
