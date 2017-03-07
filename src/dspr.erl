@@ -22,7 +22,9 @@
 -define(SERVER, ?MODULE).
 
 -record(state, {
-          registrations = [] :: list()
+          registrations = [] :: list(),
+          notify :: pid(),
+          notify_monitor :: reference()
          }).
 
 
@@ -32,10 +34,12 @@ start() ->
 start_link() ->
     gen_server:start_link(?MODULE, [], []).
 
-
 init([]) ->
+    {ok, #state{}};
+init([Notify]) ->
     process_flag(trap_exit, true),
-    {ok, #state{}}.
+    Ref = erlang:monitor(process, Notify),
+    {ok, #state{notify=Notify, notify_monitor=Ref}}.
 
 handle_call({register, Term, Pid}, _From, #state{registrations=R}=State)
   when is_pid(Pid) ->
@@ -54,7 +58,15 @@ handle_call({whereis, Term}, _From, #state{registrations=R}=State) ->
 handle_cast(_Cast, State) ->
     {noreply, State}.
 
-handle_info({'DOWN', Ref, _, _, _}, #state{registrations=R}) ->
+handle_info({'DOWN', Ref, _, _, _}, #state{notify_monitor=Ref}=State) ->
+    {stop, normal, State};
+handle_info({'DOWN', Ref, _, _, _}=Msg, #state{registrations=R, notify=Notify}) ->
+    case {lists:keyfind(Ref, 2, R), erlang:is_pid(Notify)} of
+        {_, false} ->
+            ok;
+        {{_, _, _}, true} ->
+            Notify ! Msg
+    end,
     {noreply, #state{registrations=lists:keydelete(Ref, 2, R)}}.
 
 terminate(_Reason, _State) ->
